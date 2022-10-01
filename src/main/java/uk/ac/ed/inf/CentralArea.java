@@ -17,6 +17,7 @@ import java.util.List;
 
 
 public class CentralArea {
+    List<LngLat> centralPoints;
     private static CentralArea instance;
 
     static {
@@ -28,9 +29,8 @@ public class CentralArea {
     }
 
 
-    List<LngLat> centralPoints;
 
-    private void getFromURL(){
+    private void getFromURL() throws IOException {
         URL finalURL = null;
         String baseURL = "https://ilp-rest.azurewebsites.net/";
         String filenameToLoad = "centralArea";
@@ -46,29 +46,13 @@ public class CentralArea {
             System.exit(2);
         }
 
-        try (BufferedInputStream in = new BufferedInputStream(finalURL.openStream());
-            FileOutputStream fileOutputSteam = new FileOutputStream(filenameToLoad, false)){
-
-            byte[] dataBuffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1){
-                fileOutputSteam.write(dataBuffer, 0, bytesRead);
-            }
-            System.out.println("File was written: " + filenameToLoad);
-        } catch (IOException e){
-            System.err.format("Error loading file: %s from %s -> %s", filenameToLoad, finalURL, e);
-        }
-    }
-
-    private void mapToObject() throws IOException {
         ObjectMapper mapper = new ObjectMapper().enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
-        File json = new File("centralArea");
-        centralPoints = Arrays.asList(mapper.readValue(json, LngLat[].class));
+        centralPoints = Arrays.asList(mapper.readValue(finalURL, LngLat[].class));
     }
+
 
     private CentralArea() throws IOException {
         this.getFromURL();
-        this.mapToObject();
         System.out.println("Singleton class CentralArea has been instantiated!");
     }
 

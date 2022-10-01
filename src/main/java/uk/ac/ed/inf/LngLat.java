@@ -22,7 +22,6 @@ public class LngLat {
 
     boolean inCentralArea(){
      List<LngLat> polygon = CentralArea.getInstance().centralPoints;
-
      boolean inside = false;
 
      for(int i = 0, j = polygon.size() - 1; i < polygon.size(); j = i++){
@@ -35,13 +34,28 @@ public class LngLat {
      return inside;
     }
 
-    double distanceTo(LngLat point){
 
-        return 0.888;
+    double distanceTo(LngLat point){
+        return Math.sqrt(Math.pow((this.lng - point.lng), 2) + Math.pow((this.lat - point.lat), 2));
     }
 
     boolean closeTo(LngLat point){
-
-        return true;
+        return distanceTo(point) < 0.00015;
     }
+
+    LngLat nextPosition(Compass direction){
+        LngLat result;
+        double d = 0.00015;
+
+        if (direction == Compass.NULL){
+            return this;
+        }else{
+
+            double resLng = this.lng + (d * Math.cos(Math.toRadians(direction.angle)));
+            double resLat = this.lat + (d * Math.sin(Math.toRadians(direction.angle)));
+            result = new LngLat(resLng, resLat);
+        }
+        return result;
+    }
+
 }
