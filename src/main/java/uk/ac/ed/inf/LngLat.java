@@ -1,5 +1,6 @@
 package uk.ac.ed.inf;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -10,21 +11,18 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LngLat {
-    @JsonProperty("longitude")
     public double lng;
-    @JsonProperty("latitude")
     public double lat;
 
     /**
      * @param lng represents the longitude value of the point.
      * @param lat represents the latitude value of the point.
      */
-    public LngLat(double lng, double lat){
+    @JsonCreator
+    public LngLat(@JsonProperty("longitude") double lng, @JsonProperty("latitude") double lat){
         this.lng = lng;
         this.lat = lat;
     }
-
-    public LngLat(){}
 
     /**
      * Checks if the point is within the specified central area, including being on the border of the coordinates.
@@ -68,8 +66,8 @@ public class LngLat {
     /**
      * Calculates the next position of the point after one move.
      * Given direction in terms of the angle and the default distance of one move being 0.00015 units,
-     * next position is being calculated using trigonometry formulae.
-     * new_x = x + (d * cos(alpha))
+     * next position is being calculated using trigonometry formulae,
+     * new_x = x + (d * cos(alpha)),
      * new_y = y + (d * sin(alpha))
      * Where x is longitude, y is latitude, d is the distance to travel and alpha is the direction in radians.
      * @param direction in which to travel passed in degrees.

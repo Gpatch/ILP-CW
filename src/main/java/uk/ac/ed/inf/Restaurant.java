@@ -1,5 +1,6 @@
 package uk.ac.ed.inf;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,11 +17,10 @@ public class Restaurant {
     @JsonProperty("menu")
     Menu[] menu;
 
+    @JsonCreator
     public Restaurant(@JsonProperty("longitude") double longitude,@JsonProperty("latitude") double latitude){
         location = new LngLat(longitude, latitude);
     }
-
-    public Restaurant(){}
 
     public static Restaurant[] getRestaurantsFromRestServer(URL serverBaseAddress) throws IOException {
         Restaurant[] restaurants;

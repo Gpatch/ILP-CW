@@ -29,7 +29,7 @@ public class App
 
         Order o = new Order();
 
-        String[] pizzas = {"Margarit"};
+        String[] pizzas = {"Margarita"};
 
         System.out.println(o.getDeliveryCost(participants, pizzas));
     }
