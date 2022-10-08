@@ -1,5 +1,7 @@
 package uk.ac.ed.inf;
 
+import com.sun.jdi.ObjectReference;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,7 +12,7 @@ import java.net.URL;
  */
 public class App 
 {
-    public static void main( String[] args ) throws IOException {
+    public static void main( String[] args ) throws IOException, InvalidPizzaCombinationException {
         CentralArea CA = CentralArea.getInstance();
         LngLat point = new LngLat(-3.192473, 55.942617);
 
@@ -25,9 +27,10 @@ public class App
 
         Restaurant[] participants = Restaurant.getRestaurantsFromRestServer(new URL("https://ilp-rest.azurewebsites.net/restaurants"));
 
-        for(Menu m : participants[0].getMenu()){
-            System.out.println(m.name);
-        }
+        Order o = new Order();
 
+        String[] pizzas = {"Margarit"};
+
+        System.out.println(o.getDeliveryCost(participants, pizzas));
     }
 }
