@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Represents a point with two coordinates: longitude and latitude.
+ * Represents a point with two coordinates being: longitude and latitude.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LngLat {
