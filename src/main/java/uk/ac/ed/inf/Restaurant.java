@@ -48,9 +48,7 @@ public class Restaurant {
 
     /**
      * Gets all the items in the menu of the restaurant.
-     * @return an array of menu items.
+     * @return an array of menu objects.
      */
-    public Menu[] getMenu(){
-        return menu;
-    }
+    public Menu[] getMenu() { return menu; }
 }

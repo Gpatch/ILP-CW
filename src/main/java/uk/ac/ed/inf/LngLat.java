@@ -15,6 +15,7 @@ public class LngLat {
     public double lat;
 
     /**
+     * A public constructor for a point used for deserializing from JSON requested form the REST API.
      * @param lng represents the longitude value of the point.
      * @param lat represents the latitude value of the point.
      */
@@ -59,9 +60,7 @@ public class LngLat {
      * @param point to which the proximity is checked.
      * @return true if the points are close, false otherwise.
      */
-    public boolean closeTo(LngLat point){
-        return distanceTo(point) < 0.00015;
-    }
+    public boolean closeTo(LngLat point){ return distanceTo(point) < 0.00015; }
 
     /**
      * Calculates the next position of the point after one move.
@@ -87,5 +86,4 @@ public class LngLat {
         }
         return result;
     }
-
 }

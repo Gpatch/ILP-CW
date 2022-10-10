@@ -23,7 +23,6 @@ public class CentralArea {
     }
 
 
-
     private void getFromURL() throws IOException {
         URL finalURL = null;
         String baseURL = "https://ilp-rest.azurewebsites.net/";
