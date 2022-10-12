@@ -1,7 +1,7 @@
 package uk.ac.ed.inf;
 
 /**
- * An enum which stores all possible outcomes of an order.
+ * An enum class which stores all possible outcomes of an order.
  */
 public enum OrderOutcome {
     Delivered,

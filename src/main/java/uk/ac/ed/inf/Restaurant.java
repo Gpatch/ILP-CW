@@ -1,7 +1,6 @@
 package uk.ac.ed.inf;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,12 +36,17 @@ public class Restaurant {
      * Serves as a factory method. Creates an array of restaurants from the REST API, which could be accessed statically.
      * @param serverBaseAddress is the address of the REST server.
      * @return an array of the restaurant objects.
-     * @throws IOException thrown if an error while reading data from the REST server occurs.
      */
-    public static Restaurant[] getRestaurantsFromRestServer(URL serverBaseAddress) throws IOException {
+    public static Restaurant[] getRestaurantsFromRestServer(URL serverBaseAddress){
         Restaurant[] restaurants;
         ObjectMapper mapper = new ObjectMapper().enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
-        restaurants = mapper.readValue(serverBaseAddress, Restaurant[].class);
+        try {
+            restaurants = mapper.readValue(serverBaseAddress, Restaurant[].class);
+        }
+        catch(IOException e) {
+            System.err.println("Error while reading restaurants data from the REST server!");
+            return new Restaurant[0];
+        }
         return restaurants;
     }
 

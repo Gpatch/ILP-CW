@@ -26,19 +26,128 @@ public class LngLat {
     }
 
     /**
-     * Checks if the point is within the specified central area, including being on the border of the coordinates.
+     * Checks if the line between two points is horizontal.
+     * @param x is the first point.
+     * @param y is the second point.
+     * @return true if the line is horizontal, otherwise false.
+     */
+    private boolean isLineHorizontal(LngLat x, LngLat y){
+        return x.lat == y.lat;
+    }
+
+    /**
+     * Checks if the line between two points is vertical.
+     * @param x is the first point.
+     * @param y is the second point.
+     * @return true if the line is vertical, otherwise false.
+     */
+    private boolean isLineVertical(LngLat x, LngLat y){
+        return x.lng == y.lng;
+    }
+
+    /**
+     * Calculates the gradient of the line between the two points.
+     * @param x is the  first point.
+     * @param y is the second point.
+     * @return the gradient value.
+     */
+    private double calculateGradient(LngLat x, LngLat y){
+        return (y.lng - x.lng) / (y.lat - x.lat);
+    }
+
+    /**
+     * Calculates the y-intercept of the line.
+     * @param m is the gradient of the line.
+     * @param x is some point on the line.
+     * @return the y-intercept value.
+     */
+    private double calculateIntercept(double m, LngLat x){
+        return x.lat - (m * x.lng);
+    }
+
+    /**
+     * Checks if a given point lies on the line.
+     * @param m is the gradient of the line.
+     * @param c is the y-intercept of the line.
+     * @param point is a point being tested.
+     * @return true of the point lies on the line, false otherwise.
+     */
+    private boolean onLine(double m, double c, LngLat point){
+        return point.lat == (m * point.lng) + c;
+    }
+
+    /**
+     * Checks if a point is in the region between other two points.
+     * @param x is the first point representing the region.
+     * @param y is the second point representing the region.
+     * @param point is a point being tested.
+     * @return true if a point lies in between the two other points, false otherwise.
+     */
+    private boolean betweenTwoPoints(LngLat x, LngLat y, LngLat point){
+        return (point.lng <= Math.max(x.lng, y.lng)) && (point.lng >= Math.min(x.lng, y.lng))
+                && (point.lat <= Math.max(x.lat, y.lat)) && (point.lat >= Math.min(x.lat, y.lat));
+    }
+
+    /**
+     * Checks if the points lies on the line segment.
+     * @param x is the starting point of the line segment.
+     * @param y is the finishing point of the line segment.
+     * @param point is the point that is being tested.
+     * @return true if the point lies on the specified line segment, false otherwise.
+     */
+    private boolean onLineSegment(LngLat x, LngLat y, LngLat point){
+        double m;
+        double c;
+        boolean result = false;
+
+        if(isLineHorizontal(x, y) || isLineVertical(x, y)){
+            result = betweenTwoPoints(x, y, point);
+        }
+        else {
+            m = calculateGradient(x, y);
+            c = calculateIntercept(m, x);
+            if (onLine(m, c, point)) {
+                result = betweenTwoPoints(x, y, point);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Check if a point is on one of the edges of the polygon.
+     * @param point is a point being checked.
+     * @return true if a point lies on one of the edges, otherwise false.
+     */
+    private boolean onPolygonEdge(LngLat point, LngLat[] polygon){
+        boolean onEdge = false;
+
+        for(int i = 0, j = 1; i < polygon.length; i++, j++){
+            j %= polygon.length;
+
+            if(onLineSegment(polygon[i], polygon[j], point)){
+                onEdge = true;
+                break;
+            }
+        }
+        return onEdge;
+    }
+
+    /**
+     * Checks if the point is within the specified central area, including being on the edge.
      * An "Even-Odd Rule" algorithm has been used to check if the point is inside a polygon.
      * For reference https://en.wikipedia.org/wiki/Even–odd_rule .
-     * @return true if is inside the polygon or on the border, false if outside.
+     * @return true if is inside the polygon or on the edge, false if outside.
      */
     public boolean inCentralArea(){
-     List<LngLat> polygon = CentralArea.getInstance().centralPoints;
+     LngLat[] polygon = CentralArea.getInstance().centralPoints;
      boolean inside = false;
 
-     for(int i = 0, j = polygon.size() - 1; i < polygon.size(); j = i++){
-         if((polygon.get(i).lat > this.lat) != (polygon.get(j).lat > this.lat) &&
-                 (this.lng < (polygon.get(j).lng - polygon.get(i).lng) * (this.lat - polygon.get(i).lat) /
-                         (polygon.get(j).lat - polygon.get(i).lat) + polygon.get(i).lng)){
+     if(onPolygonEdge(this, polygon)){ return true; }
+
+     for(int i = 0, j = polygon.length - 1; i < polygon.length; j =  i++){
+         if((polygon[i].lat > this.lat) != (polygon[j].lat > this.lat) &&
+                 (this.lng < (polygon[j].lng - polygon[i].lng) * (this.lat - polygon[i].lat) /
+                         (polygon[j].lat - polygon[i].lat) + polygon[i].lng)){
              inside = !inside;
          }
      }

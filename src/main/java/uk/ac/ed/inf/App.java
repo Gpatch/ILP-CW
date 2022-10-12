@@ -14,10 +14,10 @@ public class App
 {
     public static void main( String[] args ) throws IOException, InvalidPizzaCombinationException {
         CentralArea CA = CentralArea.getInstance();
-        LngLat point = new LngLat(-3.192473, 55.942617);
+        LngLat point = new LngLat(-3.192073, 55.942607);
 
         for (int i = 0; i <= 3; i ++){
-            System.out.println(CA.centralPoints.get(i).lng + ", " +  CA.centralPoints.get(i).lat);
+            System.out.println(CA.centralPoints[i].lng + ", " +  CA.centralPoints[i].lat);
         }
         System.out.println("Is drone in central area: " + point.inCentralArea());
 
