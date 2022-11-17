@@ -1,20 +1,41 @@
 package uk.ac.ed.inf;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Represents an order made by a customer. Currently, only stores the restaurant from which order has been made,
  * given the order is valid, and it's status.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Order {
-    private OrderOutcome orderStatus;
-    private Restaurant restaurant;
+    public String orderNo;
+    public String orderDate;
+    public String customer;
+    public String creditCardNumber;
+    public String creditCardExpiry;
+    public String cvv;
+    public int priceTotalInPence;
+    public String[] orderItems;
+
+    public OrderOutcome outcome;
+    public Restaurant restaurant;
 
     /**
      * A public constructor for the Order class.
      */
-    public Order(){}
+    @JsonCreator
+    public Order(){
+    }
 
     /**
      * Calculates the delivery cost, given that the pizza combination and pizza count in the order are valid.
@@ -23,18 +44,15 @@ public class Order {
      * @param pizzas and array of strings representing pizza names in the order.
      * @return the total cost of the delivery. If the pizza combination and count are valid, then returns sum of their prices with
      * and additional delivery charge of 1£. Otherwise, if either or both pizza combination and count are invalid, returns 0.
+     * @throws InvalidPizzaCombinationException if number of pizzas is invalid, pizza doesn't exist or pizzas are not from the same supplier.
      */
-    public int getDeliveryCost(Restaurant[] restaurants, String[] pizzas){
+    public int getDeliveryCost(Restaurant[] restaurants, String[] pizzas) {
         int cost = 0;
         final int DELIVERY_COST = 100;
 
-        try{
-            checkValidPizzaCount(pizzas);
-            checkValidPizzaCombination(restaurants, pizzas);
-        }catch (InvalidPizzaCombinationException e){
-            System.err.println("Error: " + orderStatus);
-            return 0;
-        }
+//        if(!checkValidPizzaCount(pizzas) || !checkValidPizzaCombination(restaurants, pizzas)){
+//            throw new InvalidPizzaCombinationException(outcome.name());
+//        }
 
         List<Menu> orderedPizzas = Arrays.stream(this.restaurant.getMenu()).filter(item -> Arrays.asList(pizzas).contains(item.name)).toList();
         cost += orderedPizzas.stream().mapToInt(item -> item.priceInPence).sum();
@@ -43,56 +61,21 @@ public class Order {
         return cost;
     }
 
-    /**
-     * Check is the pizza count is valid. Being valid means count must be greater than 0, and less than or equal to 4.
-     * NOTE: any method using this function must handle the InvalidPizzaCombinationException exception appropriately,
-     * so that no runtime problems occur. Like shown in the getDeliveryCost function.
-     * @see Order#getDeliveryCost(Restaurant[], String[])
-     * @param pizzas a list of strings representing pizza names.
-     * @throws InvalidPizzaCombinationException if the count is invalid.
-     */
-    private void checkValidPizzaCount(String[] pizzas) throws InvalidPizzaCombinationException {
-        boolean validCount =  pizzas.length > 0 && pizzas.length <= 4;
-        if(!validCount){
-            orderStatus = OrderOutcome.InvalidPizzaCount;
-            throw new InvalidPizzaCombinationException();
+    public static Order[] initOrders(String serverBaseAddress, String date, Restaurant[] restaurants){
+        Order[] requestedOrders = new Request(serverBaseAddress, Endpoint.ORDERS.endpoint+"/"+date).getOrders();
+        List<Order> listOrders = new ArrayList<>();
+        for(Order o : requestedOrders){
+            OrderOutcome outcome = OrderValidator.orderStatusAfterInit(restaurants, o);
+            o.setOrderOutcome(outcome);
+            System.err.println(outcome);
+            if(o.outcome == OrderOutcome.ValidButNotDelivered){
+                listOrders.add(o);
+            }
         }
+        return listOrders.toArray(Order[] ::new);
     }
 
-    /**
-     * Checks for a valid combination of pizzas. First checks if pizza names exist. Then checks if all the pizzas in the
-     * list are from the same supplier. If both conditions are met, then pizzas are of valid combination.
-     * NOTE: any method using this function must handle the InvalidPizzaCombinationException exception appropriately,
-     * so that no runtime problems occur. Like shown in the getDeliveryCost function.
-     * @see Order#getDeliveryCost(Restaurant[], String[])
-     * @param restaurants an array of Restaurant objects participating.
-     * @param pizzas a list of strings representing pizza names.
-     * @throws InvalidPizzaCombinationException if either pizzas don't exist or they are not from the same supplier.
-     */
-    private void checkValidPizzaCombination(Restaurant [] restaurants, String[] pizzas) throws InvalidPizzaCombinationException {
-        Map<String, String> pizzaRestaurantMap = new HashMap<>();
-        for(Restaurant restaurant : restaurants){
-            List<String> restaurantPizzaList = Arrays.stream(restaurant.getMenu()).map(menuItem -> menuItem.name).collect(Collectors.toList());
-            for(String pizza : pizzas){
-                if(restaurantPizzaList.contains(pizza)){pizzaRestaurantMap.put(pizza, restaurant.name);}
-            }
-        }
-        boolean pizzasValid = Arrays.stream(pizzas).allMatch(p -> pizzaRestaurantMap.get(p) != null);
-        boolean pizzasFromSameSupplier = pizzaRestaurantMap.values().stream().distinct().count() == 1;
-
-        if(!pizzasValid){orderStatus = OrderOutcome.InvalidPizzaNotDefined;}
-        else if(!pizzasFromSameSupplier){
-            orderStatus = OrderOutcome.InvalidPizzaCombinationMultipleSuppliers;
-        }else{
-            String tempRestaurant = pizzaRestaurantMap.get(pizzas[0]);
-            for(Restaurant r : restaurants){
-                if(Objects.equals(r.name, tempRestaurant)){
-                    this.restaurant = r;
-                    break;
-                }
-            }
-        }
-        boolean valid = pizzasValid && pizzasFromSameSupplier;
-        if (!valid){ throw new InvalidPizzaCombinationException(); }
+    public void setOrderOutcome(OrderOutcome outcome){
+        this.outcome = outcome;
     }
 }

@@ -1,7 +1,7 @@
 package uk.ac.ed.inf;
 
 /**
- * An enum representing sixteen compass directions with their degrees. Additionally with a NULL direction which should be used for drone hovering movement.
+ * An enum representing sixteen compass directions with their degrees. Additionally, with a NULL direction which should be used for drone hovering movement.
  */
 public enum Compass {
     E(0.0),
@@ -27,7 +27,7 @@ public enum Compass {
 
     /**
      * Initializing an angle for every compass direction.
-     * @param angle that is being initialized.
+     * @param angle in degrees that is being initialized.
      */
     Compass(double angle){this.angle = angle;}
 }

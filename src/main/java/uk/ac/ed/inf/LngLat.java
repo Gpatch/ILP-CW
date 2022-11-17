@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a point with two coordinates being: longitude and latitude.
@@ -66,14 +66,15 @@ public class LngLat {
     }
 
     /**
-     * Checks if a given point lies on the line.
+     * Checks if a given point lies on the line. With an acceptable degree of 10^-12 due to floating point rounding errors.
      * @param m is the gradient of the line.
      * @param c is the y-intercept of the line.
      * @param point is a point being tested.
      * @return true of the point lies on the line, false otherwise.
      */
     private boolean onLine(double m, double c, LngLat point){
-        return point.lat == (m * point.lng) + c;
+        double result =  (m * point.lng) + c;
+        return (result + Math.pow(10, -12) >= point.lng) || (result - Math.pow(10, -12) <= point.lng);
     }
 
     /**
@@ -135,19 +136,18 @@ public class LngLat {
     /**
      * Checks if the point is within the specified central area, including being on the edge.
      * An "Even-Odd Rule" algorithm has been used to check if the point is inside a polygon.
-     * For reference https://en.wikipedia.org/wiki/Even–odd_rule .
+     * For reference https://en.wikipedia.org/wiki/Even–odd_rule .2
      * @return true if is inside the polygon or on the edge, false if outside.
      */
-    public boolean inCentralArea(){
-     LngLat[] polygon = CentralArea.getInstance().centralPoints;
-     boolean inside = false;
+    public boolean inArea(LngLat[] coordinates){
+        boolean inside = false;
 
-     if(onPolygonEdge(this, polygon)){ return true; }
+     if(onPolygonEdge(this, coordinates)){ return true; }
 
-     for(int i = 0, j = polygon.length - 1; i < polygon.length; j =  i++){
-         if((polygon[i].lat > this.lat) != (polygon[j].lat > this.lat) &&
-                 (this.lng < (polygon[j].lng - polygon[i].lng) * (this.lat - polygon[i].lat) /
-                         (polygon[j].lat - polygon[i].lat) + polygon[i].lng)){
+     for(int i = 0, j = coordinates.length - 1; i < coordinates.length; j =  i++){
+         if((coordinates[i].lat > this.lat) != (coordinates[j].lat > this.lat) &&
+                 (this.lng < (coordinates[j].lng - coordinates[i].lng) * (this.lat - coordinates[i].lat) /
+                         (coordinates[j].lat - coordinates[i].lat) + coordinates[i].lng)){
              inside = !inside;
          }
      }
@@ -195,4 +195,32 @@ public class LngLat {
         }
         return result;
     }
+
+    public double[] getCoordinates(){
+        return new double[]{lng, lat};
+    }
+
+
+    @Override
+    public boolean equals(Object o){
+        if(this == o){
+            return true;
+        }
+        if(!(o instanceof LngLat)){
+            return false;
+        }
+
+        return (this.lng == ((LngLat) o).lng) && (this.lat == ((LngLat) o).lat);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lng, lat);
+    }
+
+    @Override
+    public String toString(){
+        return "[" + lng + ", " + lat + "]";
+    }
+
 }

@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Represent an item on the restaurant's menu.
  */
 public class Menu {
-    String name;
-    int priceInPence;
+    public String name;
+    public int priceInPence;
 
     /**
      * A public constructor for a menu item used for deserializing from JSON requested form the REST API.

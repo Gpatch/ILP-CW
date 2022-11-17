@@ -1,36 +1,34 @@
 package uk.ac.ed.inf;
 
-import com.sun.jdi.ObjectReference;
-
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args ) throws IOException, InvalidPizzaCombinationException {
-        CentralArea CA = CentralArea.getInstance();
-        LngLat point = new LngLat(-3.192073, 55.942607);
-
-        for (int i = 0; i <= 3; i ++){
-            System.out.println(CA.centralPoints[i].lng + ", " +  CA.centralPoints[i].lat);
+public class App {
+    public static void main(String[] args) throws IOException {
+        String baseAddress = "";
+        String date = "";
+        try{
+            baseAddress = args[0];
+        }catch (ArrayIndexOutOfBoundsException e){
+            System.err.println("URL not specified");
+            System.exit(2);
         }
-        System.out.println("Is drone in central area: " + point.inCentralArea());
 
-        point = point.nextPosition(Compass.SSW);
+        try {
+            date = args[1];
+        }catch (ArrayIndexOutOfBoundsException e){
+            System.err.println("Date not specified! Retrieving all orders.");
+        }
+        Drone drone = new Drone(baseAddress, date);
+        //drone.AStar(new LngLat(-3.18942006469274, 55.94586860199561));
+        ArrayList<Integer> moves = drone.calculateCosts();
+      //  System.out.println(moves.stream().mapToInt(Integer::intValue).sum());
+        System.out.println(moves);
+        System.out.println(drone.getAllPaths());
+        System.out.println(drone.generatePathJSON(drone.pathsToRestaurants.get(drone.restaurants[3])));
+        // System.out.println(Arrays.toString(CentralArea.getInstance().centralPoints));
+       // System.out.println(drone.AStar(drone.restaurants[1]));
 
-        System.out.println("New drone position is: " + point.lng + ", " + point.lat);
-
-        Restaurant[] participants = Restaurant.getRestaurantsFromRestServer(new URL("https://ilp-rest.azurewebsites.net/restaurants"));
-
-        Order o = new Order();
-
-        String[] pizzas = {"Margarita"};
-
-        System.out.println(o.getDeliveryCost(participants, pizzas));
+        //System.out.println(drone.location.distanceTo((new LngLat(-3.202541470527649, 55.943284737579376))));
     }
 }
