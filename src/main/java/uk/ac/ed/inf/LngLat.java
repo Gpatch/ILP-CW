@@ -11,8 +11,8 @@ import java.util.Objects;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LngLat {
-    public double lng;
-    public double lat;
+    private final double lng;
+    private final double lat;
 
     /**
      * A public constructor for a point used for deserializing from JSON requested form the REST API.
@@ -25,77 +25,41 @@ public class LngLat {
         this.lat = lat;
     }
 
-    /**
-     * Checks if the line between two points is horizontal.
-     * @param x is the first point.
-     * @param y is the second point.
-     * @return true if the line is horizontal, otherwise false.
-     */
+    //Checks if the line between two points is horizontal.
     private boolean isLineHorizontal(LngLat x, LngLat y){
         return x.lat == y.lat;
     }
 
-    /**
-     * Checks if the line between two points is vertical.
-     * @param x is the first point.
-     * @param y is the second point.
-     * @return true if the line is vertical, otherwise false.
-     */
+
+    //Checks if the line between two points is vertical.
     private boolean isLineVertical(LngLat x, LngLat y){
         return x.lng == y.lng;
     }
 
-    /**
-     * Calculates the gradient of the line between the two points.
-     * @param x is the  first point.
-     * @param y is the second point.
-     * @return the gradient value.
-     */
+
     private double calculateGradient(LngLat x, LngLat y){
         return (y.lng - x.lng) / (y.lat - x.lat);
     }
 
-    /**
-     * Calculates the y-intercept of the line.
-     * @param m is the gradient of the line.
-     * @param x is some point on the line.
-     * @return the y-intercept value.
-     */
     private double calculateIntercept(double m, LngLat x){
         return x.lat - (m * x.lng);
     }
 
-    /**
-     * Checks if a given point lies on the line. With an acceptable degree of 10^-12 due to floating point rounding errors.
-     * @param m is the gradient of the line.
-     * @param c is the y-intercept of the line.
-     * @param point is a point being tested.
-     * @return true of the point lies on the line, false otherwise.
-     */
+    //Checks if a given point lies on the line. With an acceptable degree of 10^-12 due to floating point rounding errors.
     private boolean onLine(double m, double c, LngLat point){
         double result =  (m * point.lng) + c;
         return (result + Math.pow(10, -12) >= point.lng) || (result - Math.pow(10, -12) <= point.lng);
     }
 
-    /**
-     * Checks if a point is in the region between other two points.
-     * @param x is the first point representing the region.
-     * @param y is the second point representing the region.
-     * @param point is a point being tested.
-     * @return true if a point lies in between the two other points, false otherwise.
-     */
+
+    //Checks if a point is in the region between other two points.
     private boolean betweenTwoPoints(LngLat x, LngLat y, LngLat point){
         return (point.lng <= Math.max(x.lng, y.lng)) && (point.lng >= Math.min(x.lng, y.lng))
                 && (point.lat <= Math.max(x.lat, y.lat)) && (point.lat >= Math.min(x.lat, y.lat));
     }
 
-    /**
-     * Checks if the points lies on the line segment.
-     * @param x is the starting point of the line segment.
-     * @param y is the finishing point of the line segment.
-     * @param point is the point that is being tested.
-     * @return true if the point lies on the specified line segment, false otherwise.
-     */
+
+     //Checks if the points lies on the line segment.
     private boolean onLineSegment(LngLat x, LngLat y, LngLat point){
         double m;
         double c;
@@ -114,11 +78,8 @@ public class LngLat {
         return result;
     }
 
-    /**
-     * Check if a point is on one of the edges of the polygon.
-     * @param point is a point being checked.
-     * @return true if a point lies on one of the edges, otherwise false.
-     */
+
+    //Check if a point is on one of the edges of the polygon.
     private boolean onPolygonEdge(LngLat point, LngLat[] polygon){
         boolean onEdge = false;
 
@@ -196,10 +157,13 @@ public class LngLat {
         return result;
     }
 
+    /**
+     * Gets longitude and latitude in the form of array
+     * @return double array with two elements: longitude and latitude
+     */
     public double[] getCoordinates(){
         return new double[]{lng, lat};
     }
-
 
     @Override
     public boolean equals(Object o){
@@ -212,6 +176,7 @@ public class LngLat {
 
         return (this.lng == ((LngLat) o).lng) && (this.lat == ((LngLat) o).lat);
     }
+
 
     @Override
     public int hashCode() {

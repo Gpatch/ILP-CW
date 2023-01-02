@@ -5,64 +5,76 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * A static class used to validate the order
+ */
 public class OrderValidator {
-    public static OrderOutcome orderStatusAfterInit(Restaurant[] restaurants, Order order){
+    /**
+     * Sets the correct outcome status for the order
+     * @param restaurants participating
+     * @param order for which outcome status to be set
+     * @param date when order needs to be delivered
+     * @return the outcome status of the order
+     */
+    public static OrderOutcome orderStatusAfterInit(Restaurant[] restaurants, Order order, String date){
+        if(!isValidDate(order.getOrderDate(), date)){
+            return OrderOutcome.InvalidDate;
+        }
         if(!isValidOrderNumberFormat(order)){
             return OrderOutcome.InvalidOrderNumberFormat;
         }
-        if(!CreditCardValidator.isCreditCardNumberValid(order.creditCardNumber)){
+        if(!CreditCardValidator.isCreditCardNumberValid(order.getCreditCardNumber())){
             return OrderOutcome.InvalidCardNumber;
         }
-        if(!CreditCardValidator.isExpiryDateValid(order.creditCardExpiry, order.orderDate)){
+        if(!CreditCardValidator.isExpiryDateValid(order.getCreditCardExpiry(), order.getOrderDate())){
             return OrderOutcome.InvalidExpiryDate;
         }
-        if(!CreditCardValidator.isCvvValid(order.cvv)){
+        if(!CreditCardValidator.isCvvValid(order.getCvv())){
             return OrderOutcome.InvalidCvv;
         }
-        if(!isValidPizzaCount(order.orderItems)){
+        if(!isValidPizzaCount(order.getOrderItems())){
             return OrderOutcome.InvalidPizzaCount;
         }
-        if(!arePizzasDefined(restaurants, order.orderItems)){
+        if(!arePizzasDefined(restaurants, order.getOrderItems())){
             return OrderOutcome.InvalidPizzaNotDefined;
         }
         if(!isValidPizzaCombination(restaurants, order)){
             return OrderOutcome.InvalidPizzaCombinationMultipleSuppliers;
         }
-        if(!isPriceValid(restaurants, order)){
+        if(!isPriceValid(order)){
             return OrderOutcome.InvalidTotal;
         }
         return OrderOutcome.ValidButNotDelivered;
     }
 
     private static boolean isValidOrderNumberFormat(Order order){
-        if(order.orderNo == null){
+        if(order.getOrderNo() == null){
             return false;
         }
         String regex = "[a-fA-F0-9]{8}$";
         Pattern p = Pattern.compile(regex);
 
-        Matcher m = p.matcher(order.orderNo);
+        Matcher m = p.matcher(order.getOrderNo());
         return m.matches();
     }
 
-    private static boolean isPriceValid(Restaurant[] restaurants, Order order) {
-        return order.priceTotalInPence == order.getDeliveryCost(restaurants, order.orderItems);
+    private static boolean isPriceValid(Order order) {
+        return order.getPriceTotalInPence() == order.getDeliveryCost(order.getOrderItems());
     }
 
     /**
      * Checks for a valid combination of pizzas. First checks if pizza names exist. Then checks if all the pizzas in the
      * list are from the same supplier. If both conditions are met, then pizzas are of valid combination.
-     * @see Order#getDeliveryCost(Restaurant[], String[])
      * @param restaurants an array of Restaurant objects participating.
      * @return true if pizza combination is valid, false otherwise.
      */
     private static boolean isValidPizzaCombination(Restaurant [] restaurants, Order order) {
-        Map<String, String> pizzaRestaurantMap = orderPizzasToRestaurantMap(restaurants, order.orderItems);
+        Map<String, String> pizzaRestaurantMap = orderPizzasToRestaurantMap(restaurants, order.getOrderItems());
         boolean pizzasFromSameSupplier = pizzaRestaurantMap.values().stream().distinct().count() == 1;
-        String tempRestaurant = pizzaRestaurantMap.get(order.orderItems[0]);
+        String tempRestaurant = pizzaRestaurantMap.get(order.getOrderItems()[0]);
         for(Restaurant r : restaurants){
-            if(Objects.equals(r.name, tempRestaurant)){
-                order.restaurant = r;
+            if(Objects.equals(r.getName(), tempRestaurant)){
+                order.setRestaurant(r);
                 break;
             }
         }
@@ -78,21 +90,23 @@ public class OrderValidator {
     private static Map<String, String> orderPizzasToRestaurantMap(Restaurant[] restaurants, String[] pizzas) {
         Map<String, String> pizzaRestaurantMap = new HashMap<>();
         for(Restaurant restaurant : restaurants){
-            List<String> restaurantPizzaList = Arrays.stream(restaurant.getMenu()).map(menuItem -> menuItem.name).collect(Collectors.toList());
+            List<String> restaurantPizzaList = Arrays.stream(restaurant.getMenu()).map(Menu::getName).collect(Collectors.toList());
             for(String pizza : pizzas){
-                if(restaurantPizzaList.contains(pizza)){pizzaRestaurantMap.put(pizza, restaurant.name);}
+                if(restaurantPizzaList.contains(pizza)){pizzaRestaurantMap.put(pizza, restaurant.getName());}
             }
         }
         return pizzaRestaurantMap;
     }
 
-    /**
-     * Check is the pizza count is valid. Being valid means count must be greater than 0, and less than or equal to 4.
-     * @see Order#getDeliveryCost(Restaurant[], String[])
-     * @param pizzas a list of strings representing pizza names.
-     * @return true if number of pizzas is valid, false otherwise
-     */
+
+
+    //Check is the pizza count is valid. Being valid means count must be greater than 0, and less than or equal to 4.
     private static boolean isValidPizzaCount(String[] pizzas) {
         return pizzas.length > 0 && pizzas.length <= 4;
     }
+
+    private static boolean isValidDate(String orderDate, String actualDate){
+        return Objects.equals(orderDate, actualDate);
+    }
+
 }

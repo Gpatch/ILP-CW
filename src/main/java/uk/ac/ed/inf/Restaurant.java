@@ -2,21 +2,15 @@ package uk.ac.ed.inf;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.net.URL;
 
 /**
  * Represents a restaurant with its name, location and menu,
  * as well as includes a factory to access all restaurants participating.
  */
 public class Restaurant {
-    @JsonProperty("name")
-    public String name;
-    public LngLat location;
-    @JsonProperty("menu")
-    public Menu[] menu;
+    private final String name;
+    private final LngLat location;
+    private final Menu[] menu;
 
     /**
      * A public constructor for a restaurant used for deserializing from JSON requested form the REST API.
@@ -27,8 +21,11 @@ public class Restaurant {
      * @param latitude will be passed into a constructor of LngLat object.
      */
     @JsonCreator
-    public Restaurant(@JsonProperty("longitude") double longitude,@JsonProperty("latitude") double latitude){
+    public Restaurant(@JsonProperty("name") String name, @JsonProperty("longitude") double longitude,@JsonProperty("latitude") double latitude,
+                      @JsonProperty("menu") Menu[] menu){
+        this.name = name;
         location = new LngLat(longitude, latitude);
+        this.menu = menu;
     }
 
     /**
@@ -36,4 +33,20 @@ public class Restaurant {
      * @return an array of menu objects.
      */
     public Menu[] getMenu() { return menu; }
+
+    /**
+     * Request restaurants data from the server
+     * @param serverBaseAddress of the rest server from which data is retrieved
+     * @return array of restaurant objects
+     */
+    public static Restaurant[] requestRestaurants(String serverBaseAddress){
+        Request request = new Request(serverBaseAddress, Endpoint.RESTAURANTS.endpoint);
+        String json = request.getJSONResponse();
+        Restaurant[] restaurants = JSONObjectConverter.convertFromJSON(json, Restaurant[].class);
+        return restaurants;
+    }
+
+    public String getName(){return name;}
+    public LngLat getLocation(){return location;}
+
 }

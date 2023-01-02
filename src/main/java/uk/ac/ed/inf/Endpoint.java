@@ -1,5 +1,8 @@
 package uk.ac.ed.inf;
 
+/**
+ * Enum used to store the endpoints which are accessed frequently in the system
+ */
 public enum Endpoint {
     RESTAURANTS("restaurants"),
     CENTRAL_AREA("centralArea"),

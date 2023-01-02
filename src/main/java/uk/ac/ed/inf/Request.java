@@ -1,114 +1,47 @@
 package uk.ac.ed.inf;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Date;
-import java.util.Locale;
 
+/**
+ * Represents a request created to connect to the server
+ */
 public class Request {
-    public URL address;
-    public String endpoint;
+    private final URL fullAddress;
 
+    /**
+     * A public constructor to initialise the URL to which connection to be established
+     * @param baseAddress of the rest server
+     * @param endPoint from which data to be accessed
+     */
     public Request(String baseAddress, String endPoint){
         URL finalURL = null;
-
-        if (!baseAddress.endsWith("/")) {
-            baseAddress += "/";
-        }
         try {
             finalURL = new URL(baseAddress + endPoint);
         }catch (MalformedURLException e){
             System.err.println("URL is invalid: " + baseAddress + endPoint);
-            System.exit(2);
+            System.exit(ErrorCodes.INVALID_URL.code);
         }
-        this.address = finalURL;
-        this.endpoint = endPoint;
-    }
-
-
-    public Order[] getOrders(){
-        String ordersAddress = address.toString();
-        Order[] orders;
-        String date;
-
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
-        ObjectMapper mapper = new ObjectMapper();
-
-        try{
-            date = endpoint.substring(7, endpoint.length());
-        }catch (StringIndexOutOfBoundsException e){
-            System.err.println("Invalid endpoint format!");
-            return new Order[0];
-        }
-
-        if(!date.equals("")) {
-            try {
-                Date d = formatter.parse(date);
-            } catch (ParseException e) {
-                System.err.println("Invalid Date format: " + date);
-                return new Order[0];
-            }
-        }
-
-        try{
-            orders = mapper.readValue(address, Order[].class);
-        }catch (IOException e){
-            System.err.println("Error while reading orders data from the REST server!");
-            return new Order[0];
-        }
-        return orders;
+        this.fullAddress = finalURL;
     }
 
     /**
-     * Serves as a factory method. Creates an array of restaurants from the REST API, which could be accessed statically.
-     * @return an array of the restaurant objects.
+     * Retrieves a json response from the requested server endpoint
+     * @return a json string from the endpoint
      */
-    public Restaurant[] getRestaurants(){
-        Restaurant[] restaurants;
+    public String getJSONResponse() {
         ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = null;
         try {
-            restaurants = mapper.readValue(address, Restaurant[].class);
-        }
-        catch(IOException e) {
-            System.err.println("Error while reading restaurants data from the REST server!");
-            return new Restaurant[0];
-        }
-        return restaurants;
-    }
-
-    public LngLat[] getCentralArea(){
-        LngLat[] centralArea;
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            centralArea = mapper.readValue(address, LngLat[].class);
-        }
-        catch(IOException e){
-            System.err.println("Error while trying to central points data from the REST server!");
-            centralArea = new LngLat[0];
-        }
-        return centralArea;
-    }
-
-    public NoFlyZone[] getNoFlyZones(){
-        NoFlyZone[] zones;
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            zones = mapper.readValue(address, NoFlyZone[].class);
+            json = mapper.readTree(fullAddress);
         }catch (IOException e){
-            System.err.println("Error while trying to central points data from the REST server!");
-            zones = new NoFlyZone[0];
+            System.err.println("Error getting JSON response!");
+            System.exit(ErrorCodes.JSON_PROCESS.code);
         }
-        return zones;
+        return json.toString();
     }
 }

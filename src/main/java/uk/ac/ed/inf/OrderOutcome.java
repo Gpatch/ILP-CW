@@ -14,5 +14,5 @@ public enum OrderOutcome {
     InvalidPizzaCount,
     InvalidPizzaCombinationMultipleSuppliers,
     InvalidOrderNumberFormat,
-    Invalid
+    InvalidDate
 }
