@@ -47,6 +47,33 @@ public class OrderValidator {
         return OrderOutcome.ValidButNotDelivered;
     }
 
+    //FOR TESTING
+    public static void orderInfo(Restaurant[] restaurants, Order order, String date){
+        if(!isValidDate(order.getOrderDate(), date)){
+            System.out.println(OrderOutcome.InvalidDate);
+        }
+        if(!isValidOrderNumberFormat(order)){
+            System.out.println(OrderOutcome.InvalidOrderNumberFormat);
+            return;
+        }
+        if(!isValidPizzaCount(order.getOrderItems())){
+            System.out.println(OrderOutcome.InvalidPizzaCount);
+            return;
+        }
+        if(!arePizzasDefined(restaurants, order.getOrderItems())){
+            System.out.println(OrderOutcome.InvalidPizzaNotDefined);
+            return;
+        }
+        if(!isValidPizzaCombination(restaurants, order)){
+            System.out.println(OrderOutcome.InvalidPizzaCombinationMultipleSuppliers);
+            return;
+        }
+        if(!isPriceValid(order)){
+            System.out.println(OrderOutcome.InvalidTotal);
+            return;
+        }
+    }
+
     private static boolean isValidOrderNumberFormat(Order order){
         if(order.getOrderNo() == null){
             return false;
